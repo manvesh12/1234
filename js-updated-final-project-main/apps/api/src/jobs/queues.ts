@@ -7,7 +7,8 @@ export function redisConnection() {
     host: url.hostname,
     port: Number(url.port || 6379),
     username: url.username || undefined,
-    password: url.password || undefined
+    password: url.password || undefined,
+    ...(url.protocol === 'rediss:' ? { tls: {} } : {})
   };
 }
 

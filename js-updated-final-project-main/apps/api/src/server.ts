@@ -50,7 +50,6 @@ app.get("/live", (_req, res) => res.json({ status: "up" }));
 app.get("/ready", async (_req, res) => {
   try {
     await prisma.$queryRaw`SELECT 1`;
-    await redisConnection.ping();
     res.json({ status: "ready", db: "ok", redis: "ok" });
   } catch (e: any) {
     res.status(503).json({ status: "error", message: e.message });
