@@ -1,11 +1,12 @@
 {
   "framework": "nextjs",
-  "buildCommand": "cd ../.. && npm install --no-audit --no-fund --legacy-peer-deps && npm run build --workspace @dsr/web",
+  "installCommand": "npm install",
+  "buildCommand": "npm run build",
   "outputDirectory": ".next",
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "https://YOUR_AWS_API_DOMAIN/api/:path*"
+      "destination": "https://dsr-backend-api.onrender.com/api/:path*"
     }
   ]
 }
