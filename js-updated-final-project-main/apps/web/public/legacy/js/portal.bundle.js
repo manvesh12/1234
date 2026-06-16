@@ -1206,7 +1206,7 @@ function setSidebarCollapsed(collapsed) {
   collapsed = Boolean(collapsed);
   clearTimeout(sidebarTimer);
   const sidebar = document.getElementById('sidebar');
-  const isMobileShell = window.matchMedia && window.matchMedia('(max-width: 900px)').matches;
+  const isMobileShell = window.matchMedia && window.matchMedia('(max-width: 1280px)').matches;
   if (isMobileShell) {
     if (sidebar) sidebar.classList.toggle('mobile-open', !collapsed);
     document.body.classList.toggle('mobile-sidebar-open', !collapsed);
@@ -1228,7 +1228,7 @@ function toggleSidebar(event) {
   if (event && typeof event.preventDefault === 'function') event.preventDefault();
   if (event && typeof event.stopPropagation === 'function') event.stopPropagation();
   const sidebar = document.getElementById('sidebar');
-  const isMobileShell = window.matchMedia && window.matchMedia('(max-width: 900px)').matches;
+  const isMobileShell = window.matchMedia && window.matchMedia('(max-width: 1280px)').matches;
   const shouldCollapse = isMobileShell
     ? Boolean(sidebar && sidebar.classList.contains('mobile-open'))
     : !document.body.classList.contains('sidebar-hidden');
@@ -1245,7 +1245,7 @@ function collapseSidebar() {
 }
 window.addEventListener('resize', () => {
   const sidebar = document.getElementById('sidebar');
-  if (window.matchMedia && !window.matchMedia('(max-width: 900px)').matches) {
+  if (window.matchMedia && !window.matchMedia('(max-width: 1280px)').matches) {
     if (sidebar) sidebar.classList.remove('mobile-open');
     document.body.classList.remove('mobile-sidebar-open');
   }
@@ -1535,7 +1535,7 @@ function repairMainContentStructure() {
 }
 function showView(id, btn, push = true) {
   repairMainContentStructure();
-  if (window.matchMedia && window.matchMedia('(max-width: 900px)').matches) {
+  if (window.matchMedia && window.matchMedia('(max-width: 1280px)').matches) {
     const sidebar = document.getElementById('sidebar');
     if (sidebar) sidebar.classList.remove('mobile-open');
     document.body.classList.remove('mobile-sidebar-open');
