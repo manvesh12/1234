@@ -197,7 +197,7 @@ async function fetchTargetProjects(district) {
 
   try {
     const data = await apiFetch('/projects');
-    const validStatuses = ['IN_PROGRESS', 'ACTIVE', 'DRAFT'];
+    const validStatuses = ['IN_PROGRESS', 'IN PROGRESS', 'ACTIVE', 'DRAFT'];
     const projects = Array.isArray(data?.data) ? data.data : data;
     const filtered = (projects || []).filter((project) => {
       const matchesDistrict = String(project.district || '').toLowerCase() === String(district || '').toLowerCase();
