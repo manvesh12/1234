@@ -494,6 +494,11 @@
         <button class="tb-sub-nav-btn" onclick="showView('projects', this)">
           <i data-lucide="folder" style="width:15px; height:15px; opacity:0.8;"></i> <span data-i18n="navProjects">Projects</span>
         </button>
+      </li>
+      <li class="dash-menu-link-item">
+        <button class="tb-sub-nav-btn" onclick="showView('model-dsr', this)">
+          <i data-lucide="file-cog" style="width:15px; height:15px; opacity:0.8;"></i> <span>Model DSR</span>
+        </button>
         <div class="tb-dropdown-menu" id="tb-projects-dropdown">
           <a href="#" onclick="showView('projects', null); return false;">View All Projects</a>
           <a href="#" onclick="newProjectModal(); return false;">Add New Project</a>
@@ -1737,6 +1742,9 @@
           <button onclick="showView('projects', null)"><i data-lucide="folder" style="width:15px; height:15px; opacity:0.8;"></i> <span data-i18n="navProjects">Projects</span></button>
         </li>
         <li class="dash-menu-link-item">
+          <button onclick="showView('model-dsr', null)"><i data-lucide="file-cog" style="width:15px; height:15px; opacity:0.8;"></i> <span>Model DSR</span></button>
+        </li>
+        <li class="dash-menu-link-item">
           <button onclick="showView('workflow', null)"><i data-lucide="activity" style="width:15px; height:15px; opacity:0.8;"></i> <span data-i18n="navWorkflow">Workflow</span></button>
         </li>
         <li class="dash-menu-link-item" id="dash-menu-audit-logs" style="display: none;">
@@ -2347,6 +2355,9 @@
                   <button onclick="showView('projects', null)"><i data-lucide="folder" style="width:15px; height:15px; color: #C49A58;"></i> <span data-i18n="navProjects">Projects</span></button>
                 </li>
                 <li class="dash-menu-link-item">
+                  <button onclick="showView('model-dsr', null)"><i data-lucide="file-cog" style="width:15px; height:15px; opacity:0.8;"></i> <span>Model DSR</span></button>
+                </li>
+                <li class="dash-menu-link-item">
                   <button onclick="newProjectModal()"><i data-lucide="plus-circle" style="width:15px; height:15px; opacity:0.8;"></i> <span data-i18n="navNewProject">+ New Project</span></button>
                 </li>
                 <li class="dash-menu-link-item">
@@ -2397,11 +2408,81 @@
                   <button id="view-btn-new-project" type="button" class="projects-dash-btn primary" onclick="newProjectModal()">
                     <i data-lucide="plus-circle" style="width:14px; height:14px;"></i>New Project
                   </button>
+                  <button id="view-btn-model-dsr" type="button" class="projects-dash-btn primary" style="background-color: var(--p-accent); border-color: var(--p-accent);" onclick="showView('model-dsr', null)">
+                    <i data-lucide="file-template" style="width:14px; height:14px;"></i>Model DSR Manager
+                  </button>
                 </div>
               </div>
               <div class="projects-layout">
                 <div id="projects-grid" class="g2"></div>
               </div>
+            </div>
+          </div>
+        </div>
+
+        <div id="view-model-dsr" class="view">
+          <div class="header-row">
+            <div class="header-content">
+              <div class="page-title">Model DSR Manager</div>
+              <div class="page-sub">Manage the master template, placeholders, and structure for generating Final DSRs</div>
+            </div>
+          </div>
+          <div class="card" style="margin-bottom: 24px;">
+            <div class="card-hd">
+              <div class="card-title">Upload / Update Model DSR</div>
+            </div>
+            <div class="card-bd" style="display:flex; flex-direction:column; gap:16px;">
+              <p style="font-size: 14px; color: var(--text-mid);">Upload a master Model DSR document. Ensure placeholders (like <code style="background:#eee;padding:2px 4px;border-radius:4px;">{{district_name}}</code>) are present in the document.</p>
+              
+              <div class="field">
+                <label>Model DSR Name/Version</label>
+                <input type="text" id="model-dsr-name" placeholder="e.g. Model DSR v2.1" class="input" style="width: 100%; max-width: 400px;">
+              </div>
+              
+              <div class="field">
+                <label>Upload Document (Word/PDF)</label>
+                <input type="file" id="model-dsr-file" class="input" style="width: 100%; max-width: 400px; padding: 6px;">
+              </div>
+              
+              <div style="display:flex; gap:12px; margin-top:8px;">
+                <button class="btn btn-primary" onclick="alert('Model DSR Uploaded successfully!')">Upload & Save Draft</button>
+                <button class="btn btn-saffron" onclick="alert('Model DSR Published!')">Publish to Production</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-hd">
+              <div class="card-title">Model DSR Version History</div>
+            </div>
+            <div class="card-bd" style="padding: 0;">
+              <table class="table" style="width: 100%; text-align: left; border-collapse: collapse;">
+                <thead>
+                  <tr style="border-bottom: 1px solid var(--border);">
+                    <th style="padding: 12px; color: var(--text-soft);">Version Name</th>
+                    <th style="padding: 12px; color: var(--text-soft);">Status</th>
+                    <th style="padding: 12px; color: var(--text-soft);">Uploaded By</th>
+                    <th style="padding: 12px; color: var(--text-soft);">Date</th>
+                    <th style="padding: 12px; color: var(--text-soft);">Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr style="border-bottom: 1px solid var(--border-light);">
+                    <td style="padding: 12px;"><strong>Model DSR v1.0</strong></td>
+                    <td style="padding: 12px;"><span class="badge" style="background:#e2e8f0; color:#475569;">Archived</span></td>
+                    <td style="padding: 12px;">Admin</td>
+                    <td style="padding: 12px;">Jan 10, 2026</td>
+                    <td style="padding: 12px;"><button class="btn btn-outline" style="padding: 4px 10px; font-size: 12px;">View</button></td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 12px;"><strong>Model DSR v2.0</strong></td>
+                    <td style="padding: 12px;"><span class="badge" style="background:#dcfce7; color:#166534;">Published</span></td>
+                    <td style="padding: 12px;">Admin</td>
+                    <td style="padding: 12px;">Jun 15, 2026</td>
+                    <td style="padding: 12px;"><button class="btn btn-outline" style="padding: 4px 10px; font-size: 12px;">View</button></td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
           </div>
         </div>
@@ -5907,5 +5988,6 @@
   <div class="toast" id="toast"></div>
 
 <script defer src="js/portal.bundle.js?v=site-zoom-20260612i"></script>
+<script defer src="js/model-dsr.js"></script>
 </body>
 </html>

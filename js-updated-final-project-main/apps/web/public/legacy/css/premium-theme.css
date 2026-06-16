@@ -2509,6 +2509,10 @@ body:not(.view-dashboard-active):not(.view-projects-active) .topbar.dash-global-
   overflow: visible !important;
   z-index: 500 !important;
 }
+body.view-dashboard-active .topbar.dash-global-topbar,
+body.view-projects-active .topbar.dash-global-topbar {
+  display: none !important;
+}
 body.sidebar-hidden:not(.view-dashboard-active):not(.view-projects-active) .topbar.dash-global-topbar {
   left: 0 !important;
   width: 100% !important;
@@ -4598,3 +4602,10 @@ body.home-page.page-scrolled .nav-links-hub {
     zoom: 0.75 !important;
   }
 }
+
+/* Hide global topbar and menu bar when auth screen is active */
+body:has(#screen-auth.active) .dash-global-topbar,
+body:has(#screen-auth.active) .dash-gov-menu-bar {
+  display: none !important;
+}
+

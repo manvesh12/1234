@@ -15,6 +15,7 @@ import { pdfRouter } from "./routes/pdf.js";
 import { projectsRouter } from "./routes/projects.js";
 import { reportsRouter } from "./routes/reports.js";
 import { usersRouter } from "./routes/users.js";
+import { modelDsrRouter } from "./routes/model-dsr.js";
 
 const app = express();
 app.set("trust proxy", 1);
@@ -65,6 +66,7 @@ app.use("/api/jobs", requireAuth, auditMutations, jobsRouter);
 app.use("/api/projects", requireAuth, auditMutations, projectsRouter);
 app.use("/api/reports", requireAuth, auditMutations, reportsRouter);
 app.use("/api/users", requireAuth, auditMutations, usersRouter);
+app.use("/api/model-dsrs", requireAuth, auditMutations, modelDsrRouter);
 app.use("/api", requireAuth, uploadLimiter, auditMutations, pdfRouter);
 
 app.use((error: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
