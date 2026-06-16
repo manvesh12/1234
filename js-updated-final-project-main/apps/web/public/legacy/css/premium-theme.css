@@ -70,22 +70,9 @@ body.premium-body::after {
 }
 body.premium-body::before {
   z-index: 0;
-  background-image:
-    linear-gradient(rgba(23, 50, 77, 0.075) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(23, 50, 77, 0.075) 1px, transparent 1px);
-  background-size: 44px 44px;
-  opacity: 0.78;
 }
 body.premium-body::after {
   z-index: 1;
-  background-image: linear-gradient(90deg, transparent 0%, rgba(23, 50, 77, 0.02) 12%, rgba(23, 50, 77, 0.42) 50%, rgba(196, 154, 88, 0.22) 72%, transparent 100%),
-    linear-gradient(90deg, transparent 0%, rgba(196, 154, 88, 0.16) 20%, rgba(23, 50, 77, 0.40) 50%, rgba(23, 50, 77, 0.02) 88%, transparent 100%),
-    linear-gradient(180deg, transparent 0%, rgba(23, 50, 77, 0.02) 12%, rgba(23, 50, 77, 0.40) 50%, rgba(196, 154, 88, 0.20) 72%, transparent 100%),
-    linear-gradient(180deg, transparent 0%, rgba(196, 154, 88, 0.16) 20%, rgba(23, 50, 77, 0.38) 50%, rgba(23, 50, 77, 0.02) 88%, transparent 100%);
-  background-repeat: no-repeat;
-  background-size: 34vw 2px, 34vw 2px, 2px 34vh, 2px 34vh;
-  animation: dsrFourWayFloatingLines 9s linear infinite;
-  opacity: 0.72;
 }
 body.premium-body > :not(.ambient-glow):not(.global-watermark) {
   position: relative;
@@ -95,17 +82,8 @@ body.premium-body .global-watermark {
   z-index: 1;
 }
 html.dark body.premium-body::before {
-  background-image:
-    linear-gradient(rgba(125, 211, 252, 0.06) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(125, 211, 252, 0.06) 1px, transparent 1px);
-  opacity: 0.68;
 }
 html.dark body.premium-body::after {
-  background-image: linear-gradient(90deg, transparent 0%, rgba(125, 211, 252, 0.04) 12%, rgba(134, 239, 172, 0.34) 50%, rgba(196, 154, 88, 0.20) 72%, transparent 100%),
-    linear-gradient(90deg, transparent 0%, rgba(196, 154, 88, 0.18) 20%, rgba(134, 239, 172, 0.32) 50%, rgba(125, 211, 252, 0.04) 88%, transparent 100%),
-    linear-gradient(180deg, transparent 0%, rgba(125, 211, 252, 0.04) 12%, rgba(134, 239, 172, 0.32) 50%, rgba(196, 154, 88, 0.18) 72%, transparent 100%),
-    linear-gradient(180deg, transparent 0%, rgba(196, 154, 88, 0.18) 20%, rgba(134, 239, 172, 0.30) 50%, rgba(125, 211, 252, 0.04) 88%, transparent 100%);
-  opacity: 0.62;
 }
 @keyframes dsrFourWayFloatingLines {
   0% {
