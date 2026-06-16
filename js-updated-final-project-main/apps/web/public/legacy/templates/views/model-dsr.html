@@ -98,13 +98,14 @@
             <tr>
               <th>Template</th>
               <th>Status</th>
+              <th>Sections</th>
               <th>Created By</th>
               <th>Created</th>
               <th>Actions</th>
             </tr>
           </thead>
           <tbody>
-            <tr><td colspan="5" style="text-align:center; padding:20px;">Open this section to load Model DSRs.</td></tr>
+            <tr><td colspan="6" style="text-align:center; padding:20px;">Open this section to load Model DSRs.</td></tr>
           </tbody>
         </table>
       </div>
@@ -156,6 +157,20 @@
         <div id="mdsr-progress-title" style="font-weight:800;margin-bottom:12px;">Preparing import...</div>
         <div class="progress-bar" style="height:12px;"><div id="mdsr-progress-bar" class="progress-fill" style="width:0%;"></div></div>
         <div id="mdsr-progress-text" style="margin-top:10px;font-weight:700;color:var(--text-mid);">0%</div>
+      </div>
+    </div>
+  </div>
+
+  <div id="modal-mdsr-details" class="modal-overlay">
+    <div class="modal-box" style="max-width:720px;">
+      <div class="modal-hd">
+        <h3 id="mdsr-details-title">Model DSR</h3><button class="modal-close" onclick="closeModal('modal-mdsr-details')">X</button>
+      </div>
+      <div id="mdsr-details-body" class="modal-bd">
+        <div style="padding: 12px; color: var(--text-mid);">Loading template details...</div>
+      </div>
+      <div class="modal-ft">
+        <button class="btn btn-outline" onclick="closeModal('modal-mdsr-details')">Close</button>
       </div>
     </div>
   </div>
