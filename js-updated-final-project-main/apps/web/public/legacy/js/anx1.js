@@ -163,6 +163,7 @@ function buildAnx1PreviewMarkup() {
     {
       id: 'anx1-rivers',
       title: 'a) Rivers:',
+      isMulti: true,
       headers: ['River Name/M-Sand Plant', 'Total Stretch of River (in KM)', 'Type of River (Perennial or Non Perennial)']
     },
     {
@@ -182,7 +183,20 @@ function buildAnx1PreviewMarkup() {
     }
   ];
   const sectionHtml = sections.map(section => {
-    const rows = getAnx1TableRows(section.id);
+    
+    let rows = [];
+    if (section.isMulti && section.id === 'anx1-rivers') {
+       const wrapper = document.getElementById('section-a-wrapper-anx1');
+       if (wrapper) {
+         wrapper.querySelectorAll('table').forEach(tbl => {
+           rows = rows.concat(getAnx1TableRows(tbl.id));
+         });
+       } else {
+         rows = getAnx1TableRows(section.id);
+       }
+    } else {
+       rows = getAnx1TableRows(section.id);
+    }
     const body = rows.length
       ? rows.map(row => `<tr>${section.headers.map((_, i) => `<td>${escapeAnx1Html(row[i] || 'NUL')}</td>`).join('')}</tr>`).join('')
       : `<tr><td colspan="${section.headers.length}" class="empty">Data not provided</td></tr>`;
@@ -509,3 +523,21 @@ document.addEventListener('change', (e) => {
     scheduleAnx1LivePreview(300);
   }
 });
+
+let sectionACountAnx1 = 1;
+window.addSectionABlockAnx1 = function() {
+  sectionACountAnx1++;
+  const wrapper = document.getElementById('section-a-wrapper-anx1');
+  const originalBlock = wrapper.querySelector('.section-a-block-anx1'); 
+  const newBlock = originalBlock.cloneNode(true);
+  newBlock.querySelector('.rm-sec-a-btn').style.display = 'inline-flex';
+  const title = newBlock.querySelector('.anx-section-title');
+  title.innerText = `a) Rivers - Table ${sectionACountAnx1}:`;
+  const newTable = newBlock.querySelector('table');
+  newTable.id = 'anx1-rivers-' + sectionACountAnx1;
+  const tbody = newTable.querySelector('tbody');
+  tbody.innerHTML = '';
+  wrapper.appendChild(newBlock);
+  // Add empty row
+  window.addRowAnx1(newTable.id, ['','','<select><option>Perennial</option><option>Non-Perennial</option></select>','<button class=\'btn btn-xs btn-danger\' onclick=\'delRow(this)\' style=\'display:inline-flex;align-items:center;justify-content:center;padding:4px;\'><i data-lucide=\'trash-2\' style=\'width:12px;height:12px;\'></i></button>']);
+};

@@ -2871,10 +2871,11 @@
           </div>
           <div class="card">
                 <div class="card-bd">
-              <div class="anx-section">
-                <div class="anx-section-header"
+              <div id="section-a-wrapper-anx1">
+                <div class="anx-section section-a-block-anx1">
+                  <div class="anx-section-header"
                   style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:8px;">
-                  <div class="anx-section-title" style="font-weight:bold; font-size:14px;">a) Rivers:</div>
+                    <div class="anx-section-title" style="font-weight:bold; font-size:14px;">a) Rivers:</div>
                   <button class="btn btn-excel-template btn-xs" onclick="downloadSectionTemplate('A')"
                     style="display:inline-flex; align-items:center; gap:6px;">
                     <i data-lucide="file-spreadsheet" style="width:12px; height:12px;"></i>
@@ -2937,7 +2938,21 @@
                     <span>Upload Excel (Rivers)</span>
                     <input type="file" accept=".xlsx,.xls,.csv" hidden onchange="handleSectionUpload(event, 'A')">
                   </label>
+                <button class="btn btn-xs btn-danger rm-sec-a-btn"
+                      onclick="this.closest('.section-a-block-anx1').remove()"
+                      style="display:none; align-items:center; gap:6px;">
+                      <i data-lucide="trash-2" style="width:12px; height:12px;"></i>
+                      <span>Remove This Table</span>
+                    </button>
+                  </div>
                 </div>
+              </div>
+              <div style="margin-bottom:30px; margin-top:12px;">
+                <button class="btn btn-sm btn-pdf-upload" onclick="addSectionABlockAnx1()"
+                  style="display:inline-flex; align-items:center; gap:6px;">
+                  <i data-lucide="plus-circle" style="width:14px; height:14px;"></i>
+                  <span>Add Another Rivers Table</span>
+                </button>
               </div>
               <div class="anx-section" style="margin-top:32px;">
                 <div class="anx-section-header"
@@ -4400,7 +4415,7 @@
       + Add Entry
     </button>
   </div>
-  <div class="g2" style="grid-template-columns: 2fr 1fr;">
+  <div class="g2" style="grid-template-columns: 1fr;">
     <div>
       <div class="card">
         <div class="card-hd">
@@ -4411,18 +4426,7 @@
         </div>
       </div>
     </div>
-    <div>
-      <div class="card">
-        <div class="card-hd">
-          <div class="card-title">Upload Instructions</div>
-        </div>
-        <div class="card-bd">
-          <p style="color: var(--text-soft); font-size: 14px; line-height: 1.6; margin: 0;">
-            Upload PDF or image files for Annexure B. Each entry supports one file. Click <strong>"Add Entry"</strong> to create additional cards. Use <strong>Replace</strong> to change a file or <strong>Remove</strong> to detach it.
-          </p>
-        </div>
-      </div>
-    </div>
+    
   </div>
 </div>
 
@@ -4436,7 +4440,7 @@
       + Add Entry
     </button>
   </div>
-  <div class="g2" style="grid-template-columns: 2fr 1fr;">
+  <div class="g2" style="grid-template-columns: 1fr;">
     <div>
       <div class="card">
         <div class="card-hd">
@@ -4447,18 +4451,7 @@
         </div>
       </div>
     </div>
-    <div>
-      <div class="card">
-        <div class="card-hd">
-          <div class="card-title">Upload Instructions</div>
-        </div>
-        <div class="card-bd">
-          <p style="color: var(--text-soft); font-size: 14px; line-height: 1.6; margin: 0;">
-            Upload PDF or image files for Annexure C. Each entry supports one file. Click <strong>"Add Entry"</strong> to create additional cards. Use <strong>Replace</strong> to change a file or <strong>Remove</strong> to detach it.
-          </p>
-        </div>
-      </div>
-    </div>
+    
   </div>
 </div>
 
@@ -4472,7 +4465,7 @@
       + Add Entry
     </button>
   </div>
-  <div class="g2" style="grid-template-columns: 2fr 1fr;">
+  <div class="g2" style="grid-template-columns: 1fr;">
     <div>
       <div class="card">
         <div class="card-hd">
@@ -4483,18 +4476,7 @@
         </div>
       </div>
     </div>
-    <div>
-      <div class="card">
-        <div class="card-hd">
-          <div class="card-title">Upload Instructions</div>
-        </div>
-        <div class="card-bd">
-          <p style="color: var(--text-soft); font-size: 14px; line-height: 1.6; margin: 0;">
-            Upload PDF or image files for Annexure D. Each entry supports one file. Click <strong>"Add Entry"</strong> to create additional cards. Use <strong>Replace</strong> to change a file or <strong>Remove</strong> to detach it.
-          </p>
-        </div>
-      </div>
-    </div>
+    
   </div>
 </div>
 
@@ -4508,7 +4490,7 @@
       + Add Entry
     </button>
   </div>
-  <div class="g2" style="grid-template-columns: 2fr 1fr;">
+  <div class="g2" style="grid-template-columns: 1fr;">
     <div>
       <div class="card">
         <div class="card-hd">
@@ -4519,18 +4501,7 @@
         </div>
       </div>
     </div>
-    <div>
-      <div class="card">
-        <div class="card-hd">
-          <div class="card-title">Upload Instructions</div>
-        </div>
-        <div class="card-bd">
-          <p style="color: var(--text-soft); font-size: 14px; line-height: 1.6; margin: 0;">
-            Upload PDF or image files for Annexure E. Each entry supports one file. Click <strong>"Add Entry"</strong> to create additional cards. Use <strong>Replace</strong> to change a file or <strong>Remove</strong> to detach it.
-          </p>
-        </div>
-      </div>
-    </div>
+    
   </div>
 </div>
 
@@ -4827,7 +4798,7 @@
       + Add Entry
     </button>
   </div>
-  <div class="g2" style="grid-template-columns: 2fr 1fr;">
+  <div class="g2" style="grid-template-columns: 1fr;">
     <div>
       <div class="card">
         <div class="card-hd">
@@ -4838,18 +4809,7 @@
         </div>
       </div>
     </div>
-    <div>
-      <div class="card">
-        <div class="card-hd">
-          <div class="card-title">Upload Instructions</div>
-        </div>
-        <div class="card-bd">
-          <p style="color: var(--text-soft); font-size: 14px; line-height: 1.6; margin: 0;">
-            Upload PDF or image files for Annexure G. Each entry supports one file. Click <strong>"Add Entry"</strong> to create additional cards. Use <strong>Replace</strong> to change a file or <strong>Remove</strong> to detach it.
-          </p>
-        </div>
-      </div>
-    </div>
+    
   </div>
 </div>
 
@@ -4863,7 +4823,7 @@
       + Add Entry
     </button>
   </div>
-  <div class="g2" style="grid-template-columns: 2fr 1fr;">
+  <div class="g2" style="grid-template-columns: 1fr;">
     <div>
       <div class="card">
         <div class="card-hd">
@@ -4874,18 +4834,7 @@
         </div>
       </div>
     </div>
-    <div>
-      <div class="card">
-        <div class="card-hd">
-          <div class="card-title">Upload Instructions</div>
-        </div>
-        <div class="card-bd">
-          <p style="color: var(--text-soft); font-size: 14px; line-height: 1.6; margin: 0;">
-            Upload PDF or image files for Annexure H. Each entry supports one file. Click <strong>"Add Entry"</strong> to create additional cards. Use <strong>Replace</strong> to change a file or <strong>Remove</strong> to detach it.
-          </p>
-        </div>
-      </div>
-    </div>
+    
   </div>
 </div>
 
@@ -4899,7 +4848,7 @@
       + Add Entry
     </button>
   </div>
-  <div class="g2" style="grid-template-columns: 2fr 1fr;">
+  <div class="g2" style="grid-template-columns: 1fr;">
     <div>
       <div class="card">
         <div class="card-hd">
@@ -4910,18 +4859,7 @@
         </div>
       </div>
     </div>
-    <div>
-      <div class="card">
-        <div class="card-hd">
-          <div class="card-title">Upload Instructions</div>
-        </div>
-        <div class="card-bd">
-          <p style="color: var(--text-soft); font-size: 14px; line-height: 1.6; margin: 0;">
-            Upload PDF or image files for Annexure I. Each entry supports one file. Click <strong>"Add Entry"</strong> to create additional cards. Use <strong>Replace</strong> to change a file or <strong>Remove</strong> to detach it.
-          </p>
-        </div>
-      </div>
-    </div>
+    
   </div>
 </div>
 
@@ -4935,7 +4873,7 @@
       + Add Entry
     </button>
   </div>
-  <div class="g2" style="grid-template-columns: 2fr 1fr;">
+  <div class="g2" style="grid-template-columns: 1fr;">
     <div>
       <div class="card">
         <div class="card-hd">
@@ -4946,18 +4884,7 @@
         </div>
       </div>
     </div>
-    <div>
-      <div class="card">
-        <div class="card-hd">
-          <div class="card-title">Upload Instructions</div>
-        </div>
-        <div class="card-bd">
-          <p style="color: var(--text-soft); font-size: 14px; line-height: 1.6; margin: 0;">
-            Upload PDF or image files for Annexure J. Each entry supports one file. Click <strong>"Add Entry"</strong> to create additional cards. Use <strong>Replace</strong> to change a file or <strong>Remove</strong> to detach it.
-          </p>
-        </div>
-      </div>
-    </div>
+    
   </div>
 </div>
 

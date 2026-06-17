@@ -608,10 +608,8 @@ async function generateFinalPDF(regenerate = false) {
         doc.setTextColor(...blue);
         doc.text(`${index + 1}. ${safe(item.name, 'Entry')}`, pad, y);
         y += 6;
-        y = writeParagraph(item.summary || '', y, { size: 9, after: 4 });
-        if (item.fileName) {
-          y = writeParagraph(`Attachment: ${item.fileName}`, y, { size: 8.5, color: saffron, after: 6 });
-        }
+        // Placeholder text removed
+        if (item.summary) y = writeParagraph(item.summary, y, { size: 9, after: 4 });
         addUploadedPages(item.pages, `${title} - ${safe(item.name, `Entry ${index + 1}`)}`);
       });
       return true;
@@ -687,8 +685,10 @@ async function generateFinalPDF(regenerate = false) {
       if (!ch || (!hasText(ch.name) && !hasText(ch.summary) && !S.chapterPDFs?.[ch.id]?.length)) return false;
       let y = beginSection(`Chapter ${chapterNo}`);
       y = writeParagraph(ch.name || `Chapter ${chapterNo}`, y, { bold: true, size: 13, color: navy, after: 8 });
-      y = writeParagraph(ch.summary || 'Chapter content will be appended from uploaded project records.', y);
-      if (ch.fileName) y = writeParagraph(`Uploaded source: ${ch.fileName}`, y, { size: 8.5, color: saffron });
+      // Placeholder text removed
+      if (ch.summary) {
+        y = writeParagraph(ch.summary, y);
+      }
       addUploadedPages(S.chapterPDFs?.[ch.id], `Chapter ${chapterNo}`);
       return true;
     };
@@ -698,8 +698,8 @@ async function generateFinalPDF(regenerate = false) {
       S.plates.forEach((plate, index) => {
         if (y > 260) y = beginSection('All Plate Sections Continued');
         y = writeParagraph(`${index + 1}. ${safe(plate.name, 'Plate')}`, y, { bold: true, size: 10, color: blue, after: 3 });
-        y = writeParagraph(plate.summary || '', y, { size: 9, after: 5 });
-        if (plate.fileName) y = writeParagraph(`Attachment: ${plate.fileName}`, y, { size: 8.5, color: saffron, after: 5 });
+        // Placeholder text removed
+        if (plate.summary) y = writeParagraph(plate.summary, y, { size: 9, after: 5 });
         addUploadedPages(plate.pages, `Plate ${index + 1}`);
       });
       addUploadedPages(S.uploadedPDFs?.plates, 'Plate Section');
@@ -863,7 +863,14 @@ async function generateFinalPDF(regenerate = false) {
             { title: 'Annexure K - Annexure A', selector: '#annexure-k-annexure-a' }
           ]
         };
-        if (fallbackTables[viewId]) return addNativeTablesAsPreviewFallback(title, fallbackTables[viewId]);
+        if (fallbackTables[viewId]) {
+          const added = addNativeTablesAsPreviewFallback(title, fallbackTables[viewId]);
+          if (!added) {
+            beginSection(title);
+            writeParagraph('No data available.', doc.lastAutoTable ? doc.lastAutoTable.finalY + 15 : 60);
+          }
+          return true;
+        }
         warnings.push(`${title} has no PDF Preview pages to include.`);
         return false;
       }
