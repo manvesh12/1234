@@ -299,12 +299,12 @@ function executePDFExport(isLivePreview) {
   printElement.style.color = '#000000';
   printElement.style.backgroundColor = '#ffffff';
   printElement.innerHTML = buildAnx1PreviewMarkup();
-  printElement.style.position = 'absolute';
-  printElement.style.top = '0';
-  printElement.style.left = '0';
-  printElement.style.zIndex = '-9999';
-  printElement.style.opacity = '0';
-  document.body.appendChild(printElement);
+  
+  
+  
+  
+  
+  
   const opt = {
     margin:       10,
     filename:     'Annexure_1_Sources.pdf',
@@ -324,13 +324,13 @@ function executePDFExport(isLivePreview) {
       }
       const blob = pdf.output('blob');
       const blobUrl = URL.createObjectURL(blob);
-      document.body.removeChild(printElement);
+      
       const iframe = window.setAnnexurePreviewIframeSrc
         ? window.setAnnexurePreviewIframeSrc('anx1', blobUrl)
         : (window.getAnnexurePreviewIframe ? window.getAnnexurePreviewIframe('anx1') : document.getElementById('pdf-preview-iframe'));
       if (iframe) iframe.removeAttribute('srcdoc');
     }).catch(err => {
-      if(document.body.contains(printElement)) document.body.removeChild(printElement);
+      if(document.body.contains(printElement)) 
       console.error(err);
     });
   } else {
@@ -347,13 +347,13 @@ function executePDFExport(isLivePreview) {
         pdf.text("Page " + i, pdf.internal.pageSize.getWidth() / 2, pdf.internal.pageSize.getHeight() - 10, { align: 'center' });
       }
     }).save().then(() => {
-      document.body.removeChild(printElement);
+      
       document.body.style.padding = originalBodyPadding;
       document.body.style.backgroundColor = originalBodyBg;
       toast('PDF downloaded successfully!', 'success');
     }).catch(err => {
       console.error("PDF Error: ", err);
-      if(document.body.contains(printElement)) document.body.removeChild(printElement);
+      if(document.body.contains(printElement)) 
       document.body.style.padding = originalBodyPadding;
       document.body.style.backgroundColor = originalBodyBg;
       toast('Failed to generate PDF', 'error');
@@ -405,10 +405,7 @@ function renderPdfUploadUIAnx1() {
           iframe.src = S.activeProject.pdfData.anx1;
         }
       } else {
-        if (!window.anx1InitialPreviewGenerated) {
-           setTimeout(() => { exportAnx1PDF(null, true); }, 500);
-           window.anx1InitialPreviewGenerated = true;
-        }
+        
       }
     }
   }
