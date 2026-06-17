@@ -372,7 +372,7 @@ function exportAnx2PDF(btn, isLivePreview = false) {
       doc.setFont("times", "bold");
       doc.setFontSize(12);
       doc.setTextColor(0, 0, 0);
-      doc.text("Annexure-II", pageWidth - 40, 55, { align: "right" }); // Top right annexure label
+      doc.text((window.S && window.S.frontMatter && window.S.frontMatter.customTitles && window.S.frontMatter.customTitles['view-anx2']) || "Annexure-II", pageWidth - 40, 55, { align: "right" }); // Top right annexure label
     }
     doc.setFont("times", "bold");
     doc.setFontSize(11);

@@ -414,7 +414,7 @@ function exportAnx4PDF(btn, isLivePreview = false) {
   doc.setFont("times", "bold");
   doc.setFontSize(11);
   doc.setTextColor(0, 0, 0); // Pure Black
-  doc.text("Annexure-IV", pageW - margin - 15, currentY, { align: "right" });
+  doc.text((window.S && window.S.frontMatter && window.S.frontMatter.customTitles && window.S.frontMatter.customTitles['view-anx4']) || "Annexure-IV", pageW - margin - 15, currentY, { align: "right" });
   currentY += 8;
   doc.setFontSize(10);
   doc.text(">  Transportation Routes for individual leases and leases in Cluster:", margin + 8, currentY);

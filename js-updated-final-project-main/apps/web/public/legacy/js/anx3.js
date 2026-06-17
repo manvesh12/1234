@@ -606,7 +606,7 @@ function exportAnx3PDF(btn, isLivePreview = false) {
   doc.setFont("times", "bold");
   doc.setFontSize(12);
   doc.setTextColor(0, 0, 0);
-  doc.text("Annexure-III", pageWidth - 40, 55, { align: "right" });
+  doc.text((window.S && window.S.frontMatter && window.S.frontMatter.customTitles && window.S.frontMatter.customTitles['view-anx3']) || "Annexure-III", pageWidth - 40, 55, { align: "right" });
   doc.setFont("times", "bold");
   doc.setFontSize(11);
   doc.text("> a) Cluster Details:", 40, startY);

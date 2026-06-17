@@ -460,7 +460,7 @@ function exportAnx5PDF(btn, isLivePreview = false) {
       doc.setFont("times", "bold");
       doc.setFontSize(12);
       doc.setTextColor(0, 0, 0);
-      doc.text("Annexure-V", pageWidth - 40, 55, { align: "right" });
+      doc.text((window.S && window.S.frontMatter && window.S.frontMatter.customTitles && window.S.frontMatter.customTitles['view-anx5']) || "Annexure-V", pageWidth - 40, 55, { align: "right" });
       isFirstPage = false;
     }
     const titleEl = block.querySelector('.editable-title');

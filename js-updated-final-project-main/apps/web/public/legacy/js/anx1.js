@@ -236,8 +236,8 @@ function buildAnx1PreviewMarkup() {
   </head>
   <body>
     <main class="page">
-      <h1>Annexure-I</h1>
-      <p class="sub">Details of Sand/M-Sand Sources</p>
+      <h1>${(window.S && window.S.frontMatter && window.S.frontMatter.customTitles && window.S.frontMatter.customTitles['view-anx1']) || 'Annexure-I'}</h1>
+      
       ${sectionHtml}
     </main>
   </body>

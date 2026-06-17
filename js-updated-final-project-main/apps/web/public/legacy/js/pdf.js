@@ -213,6 +213,12 @@ function generateFinalPDF() {
         doc.addPage(); addPageHeader(tblConfig.title.split(' - ')[0]); y=25;
         doc.setFont('helvetica','bold'); doc.setFontSize(12); doc.setTextColor(...navyArr);
         let title = tblConfig.title;
+        // Dynamic title override
+        const viewMap = {'#anx1-rivers':'view-anx1','#anx1-desilt':'view-anx1','#anx1-patta':'view-anx1','#anx1-msand':'view-anx1', '#anx2-leases':'view-anx2', '#anx2-patta':'view-anx2', '#anx2-desilt':'view-anx2', '#anx2-msand':'view-anx2'};
+        const vid = viewMap[tblConfig.id];
+        if (vid && window.S && window.S.frontMatter && window.S.frontMatter.customTitles && window.S.frontMatter.customTitles[vid]) {
+          title = window.S.frontMatter.customTitles[vid].toUpperCase() + ' - ' + title.split('-').slice(1).join('-');
+        }
         if (tblConfig.id === '#anx2-leases' && tables.length > 1) {
           title += ` (Table ${tblIdx + 1})`;
         }

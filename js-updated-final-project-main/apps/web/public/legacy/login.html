@@ -6034,5 +6034,65 @@
     }, 500);
   </script>
   <script defer src="js/portal.bundle.js?v=4"></script>
+
+<script>
+// --- DYNAMIC HEADINGS INJECTION ---
+document.addEventListener('DOMContentLoaded', () => {
+  // Make page titles editable
+  document.querySelectorAll('.page-title').forEach(t => {
+    t.setAttribute('contenteditable', 'true');
+    t.addEventListener('blur', function() {
+      const viewEl = this.closest('.view');
+      if (viewEl) {
+         const viewId = viewEl.id;
+         if (!S.frontMatter) S.frontMatter = {};
+         if (!S.frontMatter.customTitles) S.frontMatter.customTitles = {};
+         S.frontMatter.customTitles[viewId] = this.innerText.trim();
+         const menuId = viewId.replace('view-', 'menu-');
+         const menuEl = document.querySelector('#' + menuId + ' .menu-label');
+         if (menuEl) menuEl.innerText = this.innerText.trim();
+         if(window.debouncedSaveState) debouncedSaveState();
+      }
+    });
+  });
+
+  // Make menu labels editable
+  document.querySelectorAll('.menu-label').forEach(t => {
+    t.setAttribute('contenteditable', 'true');
+    // Prevent clicking menu item from navigating if we are just focusing the text
+    t.addEventListener('click', (e) => e.stopPropagation());
+    t.addEventListener('blur', function() {
+      const parentMenu = this.closest('.menu-item');
+      if (parentMenu) {
+         const viewId = parentMenu.id.replace('menu-', 'view-');
+         if (!S.frontMatter) S.frontMatter = {};
+         if (!S.frontMatter.customTitles) S.frontMatter.customTitles = {};
+         S.frontMatter.customTitles[viewId] = this.innerText.trim();
+         const pageTitle = document.querySelector('#' + viewId + ' .page-title');
+         if (pageTitle) pageTitle.innerText = this.innerText.trim();
+         if(window.debouncedSaveState) debouncedSaveState();
+      }
+    });
+  });
+
+  // Intercept openProject to apply custom titles
+  if (typeof window.openProject === 'function') {
+    const originalOpenProject = window.openProject;
+    window.openProject = async function(...args) {
+      await originalOpenProject.apply(this, args);
+      if (S.frontMatter && S.frontMatter.customTitles) {
+         for (const viewId in S.frontMatter.customTitles) {
+            const title = S.frontMatter.customTitles[viewId];
+            const pageTitle = document.querySelector('#' + viewId + ' .page-title');
+            if (pageTitle && pageTitle.innerText !== title) pageTitle.innerText = title;
+            const menuId = viewId.replace('view-', 'menu-');
+            const menuEl = document.querySelector('#' + menuId + ' .menu-label');
+            if (menuEl && menuEl.innerText !== title) menuEl.innerText = title;
+         }
+      }
+    };
+  }
+});
+</script>
 </body>
 </html>
