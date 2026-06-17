@@ -28,6 +28,7 @@
   
   /* TOPBAR: Full width */
   .topbar, .dash-global-topbar {
+      position: absolute !important; /* Make topbar movable */
     left: 0 !important; width: 100vw !important; max-width: 100vw !important;
     box-sizing: border-box !important; padding: 10px 15px !important;
   }
