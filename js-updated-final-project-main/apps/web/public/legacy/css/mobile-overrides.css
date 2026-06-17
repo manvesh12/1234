@@ -84,3 +84,24 @@
     right: 16px !important; bottom: 16px !important;
   }
 }
+
+/* Hide bulky topbar elements on mobile */
+@media (max-width: 900px) {
+  .dash-global-topbar .dash-switcher-bar,
+  .dash-global-topbar .dash-gov-utility-strip,
+  .dash-global-topbar .dash-menu-links,
+  .dash-global-topbar .dash-menu-search {
+    display: none !important;
+  }
+
+  .dash-global-topbar {
+    max-height: none !important;
+    height: auto !important;
+    padding-bottom: 10px !important;
+  }
+  
+  body:not(.view-dashboard-active) .app-workspace,
+  .app-workspace {
+    padding-top: 130px !important; /* Adjust padding since topbar is now much smaller */
+  }
+}
