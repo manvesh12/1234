@@ -5480,6 +5480,11 @@ function executePDFExport(isLivePreview) {
   printElement.style.color = '#000000';
   printElement.style.backgroundColor = '#ffffff';
   printElement.innerHTML = buildAnx1PreviewMarkup();
+  printElement.style.position = 'absolute';
+  printElement.style.top = '0';
+  printElement.style.left = '0';
+  printElement.style.zIndex = '-9999';
+  document.body.appendChild(printElement);
   
   
   
@@ -5506,6 +5511,7 @@ function executePDFExport(isLivePreview) {
       const blob = pdf.output('blob');
       const blobUrl = URL.createObjectURL(blob);
       
+      if(document.body.contains(printElement)) document.body.removeChild(printElement);
       const iframe = window.setAnnexurePreviewIframeSrc
         ? window.setAnnexurePreviewIframeSrc('anx1', blobUrl)
         : (window.getAnnexurePreviewIframe ? window.getAnnexurePreviewIframe('anx1') : document.getElementById('pdf-preview-iframe'));
@@ -5529,12 +5535,14 @@ function executePDFExport(isLivePreview) {
       }
     }).save().then(() => {
       
+      if(document.body.contains(printElement)) document.body.removeChild(printElement);
       document.body.style.padding = originalBodyPadding;
       document.body.style.backgroundColor = originalBodyBg;
       toast('PDF downloaded successfully!', 'success');
     }).catch(err => {
       console.error("PDF Error: ", err);
       if(document.body.contains(printElement)) 
+      if(document.body.contains(printElement)) document.body.removeChild(printElement);
       document.body.style.padding = originalBodyPadding;
       document.body.style.backgroundColor = originalBodyBg;
       toast('Failed to generate PDF', 'error');
