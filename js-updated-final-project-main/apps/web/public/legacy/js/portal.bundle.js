@@ -2295,6 +2295,11 @@ async function doLogin() {
   const err = document.getElementById('login-error');
   if (!email || !pass) { err.style.display='block'; err.textContent='Please fill all fields.'; return; }
   err.style.display='none';
+
+  const btn = document.querySelector('#auth-form-faculty .btn-primary');
+  const originalText = btn ? btn.innerHTML : 'Login to Portal ->';
+  if (btn) btn.innerHTML = 'Logging in... <span style="display:inline-block; animation:spin 1s linear infinite;">⏳</span>';
+
   try {
       const data = await apiFetch('/auth/login', {
           method: 'POST',
@@ -2343,6 +2348,7 @@ async function doLogin() {
         }
       }, 100);
   } catch (error) {
+      if (btn) btn.innerHTML = originalText;
       err.style.display='block'; 
       err.textContent = error.message || 'Login failed. Please check credentials.';
   }
