@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
-export default function VerifyOtp() {
+function VerifyOtpContent() {
   const [otp, setOtp] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -79,5 +79,13 @@ export default function VerifyOtp() {
         </form>
       </div>
     </div>
+  );
+}
+
+export default function VerifyOtp() {
+  return (
+    <Suspense fallback={<div className="min-h-screen flex items-center justify-center bg-gray-50">Loading...</div>}>
+      <VerifyOtpContent />
+    </Suspense>
   );
 }
