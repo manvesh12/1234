@@ -5591,9 +5591,80 @@ function escapeAnx1Html(value) {
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#39;');
 }
+function getPrintableTableCells(row) {
+  let actionIndices = new Set();
+  try {
+    const table = row ? row.closest('table') : null;
+    if (table) {
+      const headerRows = table.querySelectorAll('thead tr');
+      headerRows.forEach(tr => {
+        let currentCol = 0;
+        Array.from(tr.children).forEach((th, idx) => {
+          const colSpan = Number(th.colSpan || 1);
+          const thLabel = (th.textContent || '').trim();
+          const isActionText = /^(action|actions|delete|remove|edit|control|controls)$/i.test(thLabel);
+          const isNoPrint = th.classList.contains('no-print') || th.dataset.print === 'false';
+          const isLastColAndAction = (idx === tr.children.length - 1) && (isActionText || thLabel === '' || th.querySelector('button, .btn, [data-action], i'));
+          if (isActionText || isNoPrint || isLastColAndAction) {
+            for (let c = currentCol; c < currentCol + colSpan; c++) {
+              actionIndices.add(c);
+            }
+          }
+          currentCol += colSpan;
+        });
+      });
+      const tbodyRows = table.querySelectorAll('tbody tr');
+      if (tbodyRows.length > 0) {
+        const firstRow = tbodyRows[0];
+        let totalCols = 0;
+        Array.from(firstRow.children).forEach(cell => {
+          totalCols += Number(cell.colSpan || 1);
+        });
+        let currentCol = 0;
+        Array.from(firstRow.children).forEach((cell, idx) => {
+          const colSpan = Number(cell.colSpan || 1);
+          const isLastCell = (currentCol + colSpan === totalCols);
+          if (isLastCell) {
+            if (cell.classList.contains('no-print') || cell.dataset.print === 'false' || cell.querySelector('button, .btn, [data-action], i[data-lucide="trash-2"]')) {
+              for (let c = currentCol; c < currentCol + colSpan; c++) {
+                actionIndices.add(c);
+              }
+            }
+          }
+          currentCol += colSpan;
+        });
+      }
+    }
+  } catch (e) {
+    console.error(e);
+  }
+
+  return Array.from(row?.children || []).filter((cell, idx) => {
+    let startCol = 0;
+    for (let i = 0; i < idx; i++) {
+      startCol += Number(row.children[i].colSpan || 1);
+    }
+    const endCol = startCol + Number(cell.colSpan || 1) - 1;
+    
+    let isActionCol = false;
+    for (let c = startCol; c <= endCol; c++) {
+      if (actionIndices.has(c)) {
+        isActionCol = true;
+        break;
+      }
+    }
+    if (isActionCol) return false;
+
+    const label = (cell.textContent || '').trim();
+    const isActionText = /^(action|actions|delete|remove|edit|control|controls)$/i.test(label);
+    const isNoPrint = cell.classList.contains('no-print') || cell.dataset.print === 'false';
+    const hasButton = cell.querySelector('button, .btn, [data-action]');
+    return !isActionText && !isNoPrint && !hasButton;
+  });
+}
 function getAnx1TableRows(tableId) {
   return Array.from(document.querySelectorAll(`#${tableId} tbody tr`)).map(row => (
-    Array.from(row.querySelectorAll('td')).slice(0, -1).map(cell => {
+    getPrintableTableCells(row).map(cell => {
       const select = cell.querySelector('select');
       return select ? select.value : cell.innerText.trim();
     })
@@ -6311,14 +6382,11 @@ function exportAnx2PDF(btn, isLivePreview = false) {
   };
   const extractData = (tableId) => {
     const tbl = document.getElementById(tableId);
-    const headers = Array.from(tbl.querySelectorAll('thead th')).slice(0, -1).map(th => th.innerText.trim().replace(/\n/g, ' '));
+    const headers = getPrintableTableCells(tbl.querySelector('thead tr')).map(th => th.innerText.trim().replace(/\n/g, ' '));
     const rows = [];
     tbl.querySelectorAll('tbody tr').forEach(tr => {
       const row = [];
-      const tds = tr.querySelectorAll('td');
-      for (let i = 0; i < tds.length - 1; i++) {
-        row.push(getCellText(tds[i]));
-      }
+      getPrintableTableCells(tr).forEach(td => row.push(getCellText(td)));
       rows.push(row);
     });
     return { headers, rows };
@@ -7192,21 +7260,18 @@ function exportAnx3PDF(btn, isLivePreview = false) {
   const extractData = (tableId) => {
     const tbl = document.getElementById(tableId);
     if (!tbl) return { headers: [], rows: [] };
-    const headers = Array.from(tbl.querySelectorAll('thead th')).slice(0, -1).map(th => th.innerText.trim().replace(/\n/g, ' '));
+    const headers = getPrintableTableCells(tbl.querySelector('thead tr')).map(th => th.innerText.trim().replace(/\n/g, ' '));
     const rows = [];
     tbl.querySelectorAll('tbody tr').forEach(tr => {
       const row = [];
-      const tds = tr.querySelectorAll('td');
-      for (let i = 0; i < tds.length - 1; i++) {
-        row.push(getCellTextLocal(tds[i]));
-      }
+      getPrintableTableCells(tr).forEach(td => row.push(getCellTextLocal(td)));
       rows.push(row);
     });
     const tfoot = tbl.querySelector('tfoot');
     if (tfoot) {
       tfoot.querySelectorAll('tr').forEach(tr => {
         const row = [];
-        const tds = tr.querySelectorAll('td');
+        const tds = getPrintableTableCells(tr);
         for (let i = 0; i < tds.length; i++) {
           const colSpan = parseInt(tds[i].getAttribute('colspan') || '1');
           row.push(tds[i].innerText.trim());
@@ -8517,15 +8582,12 @@ function exportAnx5PDF(btn, isLivePreview = false) {
   const extractDataAnx5 = (tableId) => {
     const tbl = document.getElementById(tableId);
     if (!tbl) return null;
-    const headers = Array.from(tbl.querySelectorAll('thead th')).filter(th => !th.classList.contains('no-print') && th.innerText.trim() !== 'Action').map(th => th.innerText.trim().replace(/\n/g, ' '));
+    const headerRow = tbl.querySelector('thead tr');
+    const headers = getPrintableTableCells(headerRow).map(th => th.innerText.trim().replace(/\n/g, ' '));
     const rows = [];
     tbl.querySelectorAll('tbody tr').forEach(tr => {
       const row = [];
-      tr.querySelectorAll('td').forEach(td => {
-        if (!td.classList.contains('no-print')) {
-          row.push(getCellTextAnx5(td));
-        }
-      });
+      getPrintableTableCells(tr).forEach(td => row.push(getCellTextAnx5(td)));
       rows.push(row);
     });
     return { headers, rows };
@@ -9215,18 +9277,13 @@ function validateMappedAnx6Row(row, sectionType, rowNumber) {
 function extractTableDataAnx6(tableId) {
   const table = document.getElementById(tableId);
   if (!table) return { headers: [], rows: [], foot: [] };
-  const headers = Array.from(table.querySelectorAll('thead th'))
-    .filter(th => !th.classList.contains('no-print'))
-    .map(th => th.innerText.trim().replace(/\n/g, ' '));
+  const headers = getPrintableTableCells(table.querySelector('thead tr')).map(th => th.innerText.trim().replace(/\n/g, ' '));
   const rows = Array.from(table.querySelectorAll('tbody tr')).map(tr => {
-    return Array.from(tr.querySelectorAll('td'))
-      .filter(td => !td.classList.contains('no-print'))
-      .map(getCellTextAnx6);
+    return getPrintableTableCells(tr).map(getCellTextAnx6);
   });
   const foot = Array.from(table.querySelectorAll('tfoot tr')).map(tr => {
     const out = [];
-    Array.from(tr.querySelectorAll('td')).forEach(td => {
-      if (td.classList.contains('no-print')) return;
+    getPrintableTableCells(tr).forEach(td => {
       const span = parseInt(td.getAttribute('colspan') || '1', 10);
       out.push(td.innerText.trim());
       for (let i = 1; i < span; i++) out.push('');
@@ -9939,9 +9996,7 @@ window.handleTableUploadAnx7 = handleTableUploadAnx7;
 function getTableDataAnx7(card, type) {
   const selector = type === 'individual' ? '.anx7-route-table-body tr' : '.anx7-cluster-table-body tr';
   return Array.from(card.querySelectorAll(selector)).map(tr => {
-    return Array.from(tr.querySelectorAll('td'))
-      .filter(td => !td.classList.contains('no-print'))
-      .map(getCellTextAnx7);
+    return getPrintableTableCells(tr).map(getCellTextAnx7);
   });
 }
 function drawAnx7Furniture(doc, pageNum) {
@@ -10674,12 +10729,12 @@ function delRowAnnexureF(btn) {
 function extractAnnexureFTable(tableId) {
   const table = typeof tableId === 'string' ? document.getElementById(tableId) : tableId;
   if (!table) return { headers: [], rows: [] };
-  const headers = Array.from(table.querySelectorAll('thead th'))
-    .slice(0, -1)
+  const headerRow = table.querySelector('thead tr');
+  const headers = getPrintableTableCells(headerRow)
     .map(th => th.innerText.trim().replace(/\n/g, ' '));
   const rows = [];
   table.querySelectorAll('tbody tr').forEach(tr => {
-    const cells = Array.from(tr.querySelectorAll('td')).slice(0, -1);
+    const cells = getPrintableTableCells(tr);
     rows.push(cells.map(annexureFCellValue));
   });
   return { headers, rows };
@@ -11311,12 +11366,12 @@ function addAnnexureKTableBlock(sectionType) {
 function extractAnnexureKTable(tableId) {
   const table = typeof tableId === 'string' ? document.getElementById(tableId) : tableId;
   if (!table) return { headers: [], rows: [] };
-  const headers = Array.from(table.querySelectorAll('thead th'))
-    .slice(0, -1)
+  const headerRow = table.querySelector('thead tr');
+  const headers = getPrintableTableCells(headerRow)
     .map(th => th.innerText.trim().replace(/\n/g, ' '));
   const rows = [];
   table.querySelectorAll('tbody tr').forEach(tr => {
-    const cells = Array.from(tr.querySelectorAll('td')).slice(0, -1);
+    const cells = getPrintableTableCells(tr);
     rows.push(cells.map(annexureKCellValue));
   });
   return { headers, rows };
@@ -12051,34 +12106,25 @@ function generateFinalPDF() {
         }
         doc.text(title, W/2, y, {align:'center'}); y+=10;
         const head = []; const body = []; const foot = [];
-        let hasActionCol = false;
         tableEl.querySelectorAll('thead tr').forEach(tr => {
           const rowData = [];
-          tr.querySelectorAll('th, td').forEach(cell => rowData.push(cell.innerText.trim()));
-          if (rowData[rowData.length - 1] === 'Action') {
-            hasActionCol = true;
-            rowData.pop();
-          }
+          getPrintableTableCells(tr).forEach(cell => rowData.push(cell.innerText.trim()));
           head.push(rowData);
         });
         tableEl.querySelectorAll('tbody tr').forEach(tr => {
           const rowData = [];
-          tr.querySelectorAll('th, td').forEach(cell => {
+          getPrintableTableCells(tr).forEach(cell => {
             const select = cell.querySelector('select');
             rowData.push(select ? select.value : cell.innerText.trim().replace('✕',''));
           });
-          if (hasActionCol) rowData.pop();
           body.push(rowData);
         });
         tableEl.querySelectorAll('tfoot tr').forEach(tr => {
           const rowData = [];
-          tr.querySelectorAll('th, td').forEach(cell => {
+          getPrintableTableCells(tr).forEach(cell => {
             const colspan = parseInt(cell.getAttribute('colspan') || '1', 10);
             rowData.push({ content: cell.innerText.trim(), colSpan: colspan });
           });
-          if (hasActionCol && rowData.length > 0 && (rowData[rowData.length - 1].content === '' || rowData[rowData.length - 1].content === '✕')) {
-            rowData.pop();
-          }
           foot.push(rowData);
         });
         doc.autoTable({
@@ -12333,8 +12379,7 @@ async function generateFinalPDF(regenerate = false) {
     };
     const tableRowsFromElement = (table) => {
       if (!table) return null;
-      const getCells = (row) => Array.from(row.children)
-        .filter(cell => !/action/i.test(cell.innerText || '') && !cell.querySelector('button'))
+      const getCells = (row) => getPrintableTableCells(row)
         .map(cell => {
           const select = cell.querySelector('select');
           return (select ? select.value : cell.innerText || '').replace(/\s+/g, ' ').trim();
@@ -13392,12 +13437,56 @@ const pdfPreview = {
       });
   },
   cleanupAnnexurePreviewClone(clone) {
+    clone.querySelectorAll('table').forEach(table => {
+      // First, compute the printable cells for each row while the table is fully intact.
+      const rows = Array.from(table.querySelectorAll('tr'));
+      const printableMap = new Map();
+      rows.forEach(row => {
+        printableMap.set(row, getPrintableTableCells(row));
+      });
+
+      // Now, remove the non-printable cells from the DOM (both thead headers and tbody/tfoot cells).
+      rows.forEach(row => {
+        const printable = printableMap.get(row);
+        if (printable) {
+          const printableSet = new Set(printable);
+          Array.from(row.children).forEach(cell => {
+            if (!printableSet.has(cell)) {
+              cell.remove();
+            }
+          });
+        }
+      });
+
+      // Align expected columns and remove any trailing empty cells.
+      const headerRows = Array.from(table.querySelectorAll('thead tr'));
+      const expectedColumns = Math.max(0, ...headerRows.map(row => Array.from(row.children)
+        .reduce((total, cell) => total + Number(cell.colSpan || 1), 0)));
+
+      table.querySelectorAll('tbody tr, tfoot tr').forEach(row => {
+        let cells = Array.from(row.children);
+        while (expectedColumns && cells.length > expectedColumns) {
+          const last = cells[cells.length - 1];
+          if ((last.textContent || '').trim() || last.querySelector('img,svg,canvas')) break;
+          last.remove();
+          cells = Array.from(row.children);
+        }
+        const visibleColumns = cells.reduce((total, cell) => total + Number(cell.colSpan || 1), 0);
+        if (expectedColumns && visibleColumns < expectedColumns && cells.length === 1) {
+          cells[0].colSpan = expectedColumns;
+        }
+      });
+    });
+
+    // Remove all general non-printing elements
     clone.querySelectorAll([
       'script',
       'style',
       'input[type="file"]',
       'button',
       '.btn',
+      '.no-print',
+      '[data-print="false"]',
       '.actions',
       '.toolbar',
       '.page-actions',
@@ -13409,6 +13498,8 @@ const pdfPreview = {
       '.annexure-line-instructions',
       '.annexure-instructions-card'
     ].join(',')).forEach(el => el.remove());
+
+    // Convert inputs/selects to static values
     clone.querySelectorAll('input, textarea, select').forEach(el => {
       const value = el.tagName === 'SELECT'
         ? (el.options[el.selectedIndex] ? el.options[el.selectedIndex].text : el.value)
@@ -13418,7 +13509,9 @@ const pdfPreview = {
       span.textContent = value || 'NUL';
       el.replaceWith(span);
     });
+
     clone.querySelectorAll('[contenteditable]').forEach(el => el.removeAttribute('contenteditable'));
+
     clone.querySelectorAll('[style]').forEach(el => {
       const keep = [];
       const style = el.getAttribute('style') || '';
@@ -13428,14 +13521,7 @@ const pdfPreview = {
       if (keep.length) el.setAttribute('style', keep.join(';'));
       else el.removeAttribute('style');
     });
-    clone.querySelectorAll('table').forEach(table => {
-      const rows = table.querySelectorAll('tr');
-      rows.forEach(row => {
-        const cells = Array.from(row.children);
-        const last = cells[cells.length - 1];
-        if (last && /action|delete|remove/i.test(last.textContent || '')) last.remove();
-      });
-    });
+
     return clone;
   },
   buildAnnexureHtmlDocument(viewId) {
