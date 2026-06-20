@@ -23,6 +23,12 @@ function visibleWhere(userRole: Role, district?: string | null) {
   return {};
 }
 
+function hasProjectAccess(userRole: Role, userDistrict: string | null | undefined, projectDistrict: string | null) {
+  const visibility = visibleWhere(userRole, userDistrict);
+  if (visibility.district && projectDistrict !== visibility.district) return false;
+  return true;
+}
+
 function readProjectState(projectState?: string | null) {
   if (!projectState) return {};
   try {
@@ -43,6 +49,7 @@ function phaseProjectName(source: { projectName: string; district?: string | nul
 projectsRouter.get("/", async (req, res) => {
   const projects = await prisma.project.findMany({
     where: visibleWhere(req.user!.role, req.user!.district),
+    omit: { projectState: true, lastReviewedState: true },
     include: { files: true },
     orderBy: { createdAt: "desc" }
   });
@@ -115,6 +122,9 @@ projectsRouter.post("/:id/rollback", async (req, res) => {
     if (!project) {
       return res.status(404).json({ error: "Project not found" });
     }
+    if (!hasProjectAccess(req.user!.role, req.user!.district, project.district)) {
+      return res.status(403).json({ error: "Access denied to this project" });
+    }
 
     if (!project.projectState) {
       return res.status(400).json({ error: "No state to rollback" });
@@ -153,6 +163,10 @@ projectsRouter.post("/:id/phases", async (req, res) => {
   });
   if (!source) {
     res.status(404).json({ error: "Source DSR phase not found" });
+    return;
+  }
+  if (!hasProjectAccess(req.user!.role, req.user!.district, source.district)) {
+    res.status(403).json({ error: "Access denied to this project" });
     return;
   }
 
@@ -273,12 +287,26 @@ projectsRouter.get("/:id", async (req, res) => {
     res.status(404).json({ error: "Project not found" });
     return;
   }
+  if (!hasProjectAccess(req.user!.role, req.user!.district, project.district)) {
+    res.status(403).json({ error: "Access denied to this project" });
+    return;
+  }
   res.json(jsonSafe(toProjectDto(project)));
 });
 
 projectsRouter.put("/:id/state", async (req, res) => {
   const id = parseBigIntParam(req.params.id, res, "project id");
   if (!id) return;
+  const existing = await prisma.project.findUnique({ where: { id } });
+  if (!existing) {
+    res.status(404).json({ error: "Project not found" });
+    return;
+  }
+  if (!hasProjectAccess(req.user!.role, req.user!.district, existing.district)) {
+    res.status(403).json({ error: "Access denied to this project" });
+    return;
+  }
+
   const dataToUpdate: any = {
     projectState: req.body?.state == null ? null : typeof req.body.state === "string" ? req.body.state : JSON.stringify(req.body.state)
   };
@@ -300,6 +328,15 @@ projectsRouter.delete("/:id", async (req, res) => {
   }
   const id = parseBigIntParam(req.params.id, res, "project id");
   if (!id) return;
+  const project = await prisma.project.findUnique({ where: { id } });
+  if (!project) {
+    res.status(404).json({ error: "Project not found" });
+    return;
+  }
+  if (!hasProjectAccess(req.user!.role, req.user!.district, project.district)) {
+    res.status(403).json({ error: "Access denied to this project" });
+    return;
+  }
   const files = await prisma.dsrFile.findMany({ where: { projectId: id } });
   await Promise.all(files.map((file) => deletePdf(file.objectKey).catch(() => undefined)));
   await prisma.project.delete({ where: { id } });

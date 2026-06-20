@@ -116,6 +116,9 @@ model Project {
 
   @@index([parentPhaseId])
   @@index([district, phaseNo])
+  @@index([status])
+  @@index([district])
+  @@index([createdAt])
 }
 
 model Report {
@@ -131,6 +134,10 @@ model Report {
   approvedBy   BigInt?
   createdAt    DateTime     @default(now())
   updatedAt    DateTime     @updatedAt
+
+  @@index([projectId])
+  @@index([status])
+  @@index([submittedBy])
 }
 
 model WorkflowHistory {
@@ -140,6 +147,8 @@ model WorkflowHistory {
   remarks     String?
   performedBy BigInt?
   performedAt DateTime @default(now())
+
+  @@index([reportId])
 }
 
 model AuditLog {
@@ -167,6 +176,7 @@ model DsrFile {
   project     Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
 
   @@unique([projectId, annexureId])
+  @@index([projectId])
 }
 
 model ModelDsr {
