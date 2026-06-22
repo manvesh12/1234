@@ -1,0 +1,599 @@
+/* ANNEXURE I - SAND SOURCES */
+const ANNEXURE_1_TABLES = {
+  RIVERS: {
+    tableId: 'anx1-rivers',
+    containerId: 'anx1-rivers-container',
+    filename: 'Annexure_I_Rivers_Template.csv',
+    headers: ['River Name/M-Sand Plant', 'Total Stretch of River (in KM)', 'Type of River (Perennial or Non Perennial)'],
+    emptyRow: ['', '', '<select><option>Perennial</option><option>Non-Perennial</option></select>', null],
+    addLabel: 'Add River',
+    uploadLabel: 'Upload Excel (Rivers)',
+    minWidth: '700px',
+    pdfTitle: '> a) Rivers:',
+    fontSize: 8
+  },
+  DESILT: {
+    tableId: 'anx1-desilt',
+    containerId: 'anx1-desilt-container',
+    filename: 'Annexure_I_DeSiltation_Template.csv',
+    headers: ['Name of Reservoir/Dams', 'Maintain/Controlled by State Govt./PSU etc.', 'Latitude', 'Longitude', 'District', 'Tehsil', 'Village', 'Size (Ha)'],
+    emptyRow: ['', '', '', '', '', '', '', '', null],
+    addLabel: 'Add Location',
+    uploadLabel: 'Upload Excel (De-Siltation)',
+    minWidth: '1100px',
+    pdfTitle: '> b) De-Siltation Location (Lakes/Ponds/Dams etc.):',
+    fontSize: 8
+  },
+  PATTA: {
+    tableId: 'anx1-patta',
+    containerId: 'anx1-patta-container',
+    filename: 'Annexure_I_Patta_Lands_Template.csv',
+    headers: ['Owner', 'SL. No', 'Area (Ha)', 'District', 'Tehsil', 'Village', 'Agricultural Land (Yes/No)'],
+    emptyRow: ['', '', '', '', '', '', '<select><option>Yes</option><option>No</option></select>', null],
+    addLabel: 'Add Patta Land',
+    uploadLabel: 'Upload Excel (Patta Lands)',
+    minWidth: '900px',
+    pdfTitle: '> c) Patta lands/Khatedari land:',
+    fontSize: 8
+  },
+  MSAND: {
+    tableId: 'anx1-msand',
+    containerId: 'anx1-msand-container',
+    filename: 'Annexure_I_MSand_Template.csv',
+    headers: ['Plant Name', 'Owner', 'District', 'Tehsil', 'Village', 'Geo-location', 'Quantity Tonnes/Annum'],
+    emptyRow: ['', '', '', '', '', '', '', null],
+    addLabel: 'Add M-Sand Plant',
+    uploadLabel: 'Upload Excel (M-Sand)',
+    minWidth: '1000px',
+    pdfTitle: '> d) M-Sand Plants:',
+    fontSize: 8
+  }
+};
+function anx1DeleteButtonHTML() {
+  const isReadOnly = typeof isUserReadOnly === 'function' ? isUserReadOnly() : !(window.S && (S.role === 'user' || S.role === 'admin'));
+  return `<button class='btn btn-xs btn-danger' onclick='delRowAnx1(this)' style='display:${isReadOnly ? 'none' : 'inline-flex'};align-items:center;justify-content:center;padding:4px;'><i data-lucide='trash-2' style='width:12px;height:12px;'></i></button>`;
+}
+function anx1CellValue(td) {
+  return annexurePrintableValue(td);
+}
+function anx1ToCSVValue(value) {
+  const text = String(value === undefined || value === null ? '' : value);
+  return `"${text.replace(/"/g, '""')}"`;
+}
+function downloadSectionTemplateAnx1(sectionType) {
+  const cfg = ANNEXURE_1_TABLES[sectionType];
+  if (!cfg) return;
+  const csvContent = cfg.headers.map(anx1ToCSVValue).join(',') + '\n';
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const link = document.createElement('a');
+  const url = URL.createObjectURL(blob);
+  link.setAttribute('href', url);
+  link.setAttribute('download', cfg.filename);
+  link.style.visibility = 'hidden';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+}
+function resolveAnx1Table(target, sectionType) {
+  if (target && typeof target === 'string') return document.getElementById(target);
+  if (target && target.nodeType === 1) {
+    if (target.matches('table')) return target;
+    const blockTable = target.closest('.anx1-table-block')?.querySelector('table');
+    if (blockTable) return blockTable;
+  }
+  const cfg = ANNEXURE_1_TABLES[sectionType];
+  return cfg ? document.getElementById(cfg.tableId) : null;
+}
+function getAnx1Tables(sectionType) {
+  const cfg = ANNEXURE_1_TABLES[sectionType];
+  if (!cfg) return [];
+  // Each clone is assigned a unique ID with this base ID as its prefix.
+  // Query the view so the original and every clone reach preview/PDF output.
+  const tables = typeof annexureTablesByPrefix === 'function'
+    ? annexureTablesByPrefix('anx1', cfg.tableId)
+    : Array.from(document.querySelectorAll(`#view-anx1 table[id^="${cfg.tableId}"]`));
+  return tables.length ? tables : (document.getElementById(cfg.tableId) ? [document.getElementById(cfg.tableId)] : []);
+}
+function getAnx1EmptyRow(sectionType) {
+  const cfg = ANNEXURE_1_TABLES[sectionType];
+  if (!cfg) return [];
+  const row = cfg.emptyRow.slice();
+  row[row.length - 1] = anx1DeleteButtonHTML();
+  return row;
+}
+function handleSectionUploadAnx1(event, sectionType) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const table = resolveAnx1Table(event.target, sectionType);
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const data = new Uint8Array(e.target.result);
+      const workbook = XLSX.read(data, { type: 'array' });
+      const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: '' });
+      if (!rows.length) {
+        toast('The uploaded file is empty.', 'warn');
+        return;
+      }
+      processExcelDataAnx1(rows, sectionType, table);
+    } catch (error) {
+      toast('Error parsing file. Please ensure it is a valid Excel or CSV file.', 'error');
+      console.error(error);
+    }
+    event.target.value = '';
+  };
+  reader.readAsArrayBuffer(file);
+}
+function processExcelDataAnx1(rows, sectionType, targetTable) {
+  const cfg = ANNEXURE_1_TABLES[sectionType];
+  if (!cfg) return;
+  const validRows = rows.filter(row => row.some(cell => String(cell === undefined || cell === null ? '' : cell).trim() !== ''));
+  const headerIdx = validRows.findIndex(row => anx1LooksLikeHeader(row, sectionType));
+  const startIndex = headerIdx >= 0 ? headerIdx + 1 : 0;
+  const dataRows = validRows.slice(startIndex);
+  if (!dataRows.length) {
+    toast('No data found after the header in the uploaded file.', 'warn');
+    return;
+  }
+  const table = targetTable || document.getElementById(cfg.tableId);
+  const tbody = table ? table.querySelector('tbody') : null;
+  if (!tbody) return;
+  const uploadRows = dataRows.map((rowData, index) => normalizeAnx1Row(rowData, sectionType, index));
+  if (typeof rbacApplyExcelRowsToTable === 'function') {
+    rbacApplyExcelRowsToTable(table, uploadRows, row => addRowAnx1(table, row));
+  } else {
+    tbody.innerHTML = '';
+    uploadRows.forEach(row => addRowAnx1(table, row));
+  }
+  if (sectionType === 'RIVERS' || sectionType === 'PATTA') toast(`Uploaded section ${sectionType.toLowerCase()} data successfully`, 'success');
+  else toast(`Uploaded section ${sectionType.toLowerCase()} data successfully`, 'success');
+  if (window.debouncedSaveState) window.debouncedSaveState();
+  if (window.pdfPreview && window.pdfPreview.currentView === 'anx1') {
+    exportAnx1PDF(null, true);
+  }
+}
+function anx1LooksLikeHeader(row, sectionType) {
+  const rowStr = row.map(c => String(c || '')).join(' ').toLowerCase();
+  if (sectionType === 'RIVERS') return rowStr.includes('river');
+  if (sectionType === 'DESILT') return rowStr.includes('reservoir');
+  if (sectionType === 'PATTA') return rowStr.includes('owner');
+  if (sectionType === 'MSAND') return rowStr.includes('plant');
+  return false;
+}
+function normalizeAnx1Row(rowData, sectionType, index) {
+  const row = Array.from(rowData);
+  const del = anx1DeleteButtonHTML();
+  while (row.length < 8) row.push('');
+  if (sectionType === 'RIVERS') {
+    let typeVal = String(row[2] || '').trim();
+    let isNonPerennial = typeVal.toLowerCase().includes('non');
+    let typeSelect = `<select><option ${!isNonPerennial ? 'selected' : ''}>Perennial</option><option ${isNonPerennial ? 'selected' : ''}>Non-Perennial</option></select>`;
+    return [row[0], row[1], typeSelect, del];
+  }
+  if (sectionType === 'DESILT') {
+    return [row[0], row[1], row[2], row[3], row[4], row[5], row[6], row[7], del];
+  }
+  if (sectionType === 'PATTA') {
+    let agVal = String(row[6] || '').trim().toLowerCase();
+    let agSelect = `<select><option ${agVal === 'yes' || agVal !== 'no' ? 'selected' : ''}>Yes</option><option ${agVal === 'no' ? 'selected' : ''}>No</option></select>`;
+    return [row[0], row[1], row[2], row[3], row[4], row[5], agSelect, del];
+  }
+  return [row[0], row[1], row[2], row[3], row[4], row[5], row[6], del];
+}
+function addRowAnx1(tableId, cellDataArray) {
+  const table = resolveAnx1Table(tableId);
+  const tbody = table ? table.querySelector('tbody') : null;
+  if (!tbody) return;
+  const tr = document.createElement('tr');
+  cellDataArray.forEach((data) => {
+    const td = document.createElement('td');
+    let dataStr = String(data === undefined || data === null ? '' : data).trim();
+    if (dataStr === '' && !dataStr.includes('<button') && !dataStr.includes('<select')) {
+      dataStr = 'NA';
+    }
+    if (dataStr.includes('<button') || dataStr.includes('<select')) {
+      td.innerHTML = dataStr;
+    } else {
+      td.textContent = dataStr;
+      const isReadOnly = typeof isUserReadOnly === 'function' ? isUserReadOnly() : !(window.S && (S.role === 'user' || S.role === 'admin'));
+      td.contentEditable = isReadOnly ? 'false' : 'true';
+      if (isReadOnly) {
+        td.style.backgroundColor = 'var(--off)';
+        td.style.cursor = 'not-allowed';
+      }
+    }
+    tr.appendChild(td);
+  });
+  tbody.appendChild(tr);
+  if (window.initLucide) window.initLucide();
+  if (window.debouncedSaveState) window.debouncedSaveState();
+  if (window.pdfPreview && window.pdfPreview.currentView === 'anx1') {
+    exportAnx1PDF(null, true);
+  }
+}
+function renumberAnx1TableBlocks(sectionType) {
+  const cfg = ANNEXURE_1_TABLES[sectionType];
+  const container = cfg ? document.getElementById(cfg.containerId) : null;
+  if (!container) return;
+  const blocks = container.querySelectorAll('.anx1-table-block');
+  blocks.forEach((block, index) => {
+    const title = block.querySelector('.anx1-block-title');
+    const delBtn = block.querySelector('.anx1-delete-table');
+    if (title) title.textContent = index === 0 ? '' : `Table ${index + 1}`;
+    if (delBtn) delBtn.style.display = blocks.length <= 1 ? 'none' : 'inline-flex';
+  });
+}
+function deleteAnx1TableBlock(btn) {
+  const block = btn.closest('.anx1-table-block');
+  if (!block) return;
+  const sectionType = block.getAttribute('data-section-type');
+  const cfg = ANNEXURE_1_TABLES[sectionType];
+  const container = cfg ? document.getElementById(cfg.containerId) : null;
+  if (!container) return;
+  if (container.querySelectorAll('.anx1-table-block').length <= 1) {
+    toast('You cannot delete the last remaining table.', 'warn');
+    return;
+  }
+  if (confirm('Are you sure you want to delete this entire table block?')) {
+    block.remove();
+    renumberAnx1TableBlocks(sectionType);
+    toast('Table block deleted.', 'success');
+    if (window.debouncedSaveState) window.debouncedSaveState();
+    if (window.pdfPreview && window.pdfPreview.currentView === 'anx1') {
+      exportAnx1PDF(null, true);
+    }
+  }
+}
+function addAnx1TableBlock(sectionType) {
+  const cfg = ANNEXURE_1_TABLES[sectionType];
+  const container = cfg ? document.getElementById(cfg.containerId) : null;
+  const firstTable = document.getElementById(cfg?.tableId);
+  if (!cfg || !container || !firstTable) return;
+  const tableIdx = container.querySelectorAll('.anx1-table-block').length + 1;
+  const newTableId = `${cfg.tableId}-clone-${Date.now()}-${tableIdx}`;
+  const headerHtml = Array.from(firstTable.querySelectorAll('thead th')).map(th => th.outerHTML).join('');
+  const blockHtml = `
+    <div class="anx1-table-block" data-section-type="${sectionType}" style="margin-top:18px; padding-top:18px; border-top:1px dashed var(--border);">
+      <div style="display:flex; justify-content:space-between; align-items:center; gap:8px; margin-bottom:10px; flex-wrap:wrap;">
+        <div class="anx1-block-title" style="font-size:12px; font-weight:700; color:var(--text-mid);">Table ${tableIdx}</div>
+        <button class="btn btn-xs btn-danger anx1-delete-table" onclick="deleteAnx1TableBlock(this)" style="display:inline-flex; align-items:center; gap:6px;">
+          <i data-lucide="trash-2" style="width:12px; height:12px;"></i>
+          <span>Delete Table</span>
+        </button>
+      </div>
+      <div class="tbl-wrap">
+        <table class="anx-tbl anx1-table" data-section-type="${sectionType}" id="${newTableId}" name="${newTableId}" style="min-width:${cfg.minWidth}">
+          <thead><tr>${headerHtml}</tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <div class="section-footer" style="margin-top:12px; display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+        <button class="btn btn-xs btn-outline" onclick="addRowAnx1(this,getAnx1EmptyRow('${sectionType}'))" style="display:inline-flex; align-items:center; gap:6px;">
+          <i data-lucide="plus" style="width:12px; height:12px;"></i>
+          <span>${cfg.addLabel}</span>
+        </button>
+        <label class="btn btn-excel-upload btn-xs" style="cursor:pointer; display:inline-flex; align-items:center; gap:6px; margin-bottom:0;">
+          <i data-lucide="upload" style="width:12px; height:12px;"></i>
+          <span>${cfg.uploadLabel}</span>
+          <input type="file" accept=".xlsx,.xls,.csv" hidden onchange="handleSectionUploadAnx1(event, '${sectionType}')">
+        </label>
+      </div>
+    </div>`;
+  container.insertAdjacentHTML('beforeend', blockHtml);
+  addRowAnx1(document.getElementById(newTableId), getAnx1EmptyRow(sectionType));
+  renumberAnx1TableBlocks(sectionType);
+  if (typeof applyMoreAnnexureAccess === 'function') applyMoreAnnexureAccess(document.getElementById('view-anx1'));
+  if (typeof addCoreAnnexureTableControls === 'function') addCoreAnnexureTableControls('anx1');
+  if (window.initLucide) window.initLucide();
+  if (window.debouncedSaveState) window.debouncedSaveState();
+  if (window.pdfPreview && window.pdfPreview.currentView === 'anx1') {
+    exportAnx1PDF(null, true);
+  }
+}
+function delRowAnx1(btn) {
+  const row = btn.closest('tr');
+  if (!row) return;
+  row.remove();
+  if (window.debouncedSaveState) window.debouncedSaveState();
+  if (window.pdfPreview && window.pdfPreview.currentView === 'anx1') {
+    exportAnx1PDF(null, true);
+  }
+}
+function extractAnx1Table(tableId) {
+  const table = typeof tableId === 'string' ? document.getElementById(tableId) : tableId;
+  if (!table) return { headers: [], rows: [] };
+  const headerRow = table.querySelector('thead tr');
+  const headers = getPrintableTableCells(headerRow)
+    .map(th => th.innerText.trim().replace(/\n/g, ' '));
+  const rows = [];
+  table.querySelectorAll('tbody tr').forEach(tr => {
+    const cells = getPrintableTableCells(tr);
+    rows.push(cells.map(anx1CellValue));
+  });
+  return { headers, rows };
+}
+async function exportAnx1PDF(btn, isLivePreview = false) {
+  if (typeof btn === 'boolean') {
+    isLivePreview = btn;
+    btn = null;
+  }
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF('p', 'pt', 'a4');
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
+  const border = { x: 30, y: 14, w: pageWidth - 60, h: pageHeight - 42 };
+  const tableLeft = 52;
+  const tableWidth = pageWidth - tableLeft - 36;
+  const headerLeft = tableLeft + 4;
+  const footerY = pageHeight - 38;
+  const pageNumberOffset = 490;
+  const district = (S.activeProject && S.activeProject.district) || 'Jalandhar';
+  const state = (S.activeProject && S.activeProject.state) || 'Punjab';
+  const CONTENT_TOP = 72;
+  let startY = CONTENT_TOP;
+  const normalizeSectionTitle = (title) => String(title || '')
+    .replace(/^>\s*/, '')
+    .replace(/:$/, '');
+  const drawReportFrame = (data) => {
+    doc.setDrawColor(0, 0, 0);
+    doc.setLineWidth(0.6);
+    doc.rect(border.x, border.y, border.w, border.h);
+    doc.setFont('times', 'italic');
+    doc.setFontSize(10);
+    doc.setTextColor(0, 0, 0);
+    doc.text('District Survey Report', headerLeft, 27);
+    doc.text(`${district} District`, headerLeft, 39);
+    doc.text(state, headerLeft, 51);
+    doc.setLineWidth(0.4);
+    doc.line(tableLeft, 62, pageWidth - 32, 62);
+    doc.setFont('times', 'normal');
+    doc.setFontSize(8);
+    doc.text('PREPARED BY:', pageWidth / 2 - 130, footerY - 2, { align: 'left' });
+    doc.setFont('times', 'bold');
+    doc.text(` SUB-DIVISIONAL COMMITTEE OF ${district.toUpperCase()} DISTRICT`, pageWidth / 2 - 76, footerY - 2, { align: 'left' });
+    doc.setFont('times', 'normal');
+    doc.text('ASSISTED BY:', pageWidth / 2 - 130, footerY + 10, { align: 'left' });
+    doc.setFont('times', 'bold');
+    doc.text(' RSP GREEN DEVELOPMENT AND LABORATORIES PVT. LTD', pageWidth / 2 - 78, footerY + 10, { align: 'left' });
+    doc.setFont('times', 'bold');
+    doc.setFontSize(10);
+    doc.text(String(pageNumberOffset + data.pageNumber), pageWidth - 26, pageHeight - 18, { align: 'right' });
+  };
+  const sections = ['RIVERS', 'DESILT', 'PATTA', 'MSAND'].flatMap(sectionType => {
+    const cfg = ANNEXURE_1_TABLES[sectionType];
+    return getAnx1Tables(sectionType).map((table, tableIndex) => ({
+      sectionType,
+      title: tableIndex === 0 ? cfg.pdfTitle : `${cfg.pdfTitle} Table ${tableIndex + 1}`,
+      table,
+      tableId: table.id,
+      fontSize: cfg.fontSize
+    }));
+  });
+  sections.forEach((section, index) => {
+    const titleHeight = 14;
+    const tableStartEstimate = startY + titleHeight + 6;
+    if (index > 0 && tableStartEstimate + 40 > pageHeight - 40) {
+      doc.addPage();
+      drawReportFrame({ pageNumber: doc.getCurrentPageInfo().pageNumber });
+      startY = CONTENT_TOP;
+    }
+    doc.setFont('times', 'bold');
+    doc.setFontSize(11);
+    doc.setTextColor(0, 0, 0);
+    doc.text(normalizeSectionTitle(section.title), pageWidth / 2, startY, { align: 'center' });
+    startY += titleHeight;
+    const tableData = extractAnx1Table(section.table);
+    doc.autoTable({
+      startY,
+      head: [tableData.headers],
+      body: tableData.rows,
+      theme: 'grid',
+      styles: {
+        font: 'times',
+        fontSize: section.fontSize,
+        textColor: 0,
+        lineColor: 0,
+        lineWidth: 0.4,
+        cellPadding: 2.5,
+        valign: 'middle',
+        halign: 'left',
+        minCellHeight: 0
+      },
+      headStyles: {
+        fillColor: false,
+        fontStyle: 'bold',
+        halign: 'center',
+        valign: 'middle',
+        textColor: 0,
+        lineColor: 0,
+        lineWidth: 0.4,
+        cellPadding: 2.5
+      },
+      margin: { top: startY, bottom: 40, left: tableLeft, right: tableLeft },
+      tableWidth,
+      didDrawPage: drawReportFrame
+    });
+    startY = doc.lastAutoTable.finalY + 18;
+  });
+  await appendAnx1AttachmentPages(doc);
+  if (isLivePreview) {
+    const blob = doc.output('blob');
+    const blobUrl = URL.createObjectURL(blob);
+    const iframe = (window.getAnnexurePreviewIframe ? window.getAnnexurePreviewIframe('anx1') : document.getElementById('pdf-iframe-anx1'));
+    if (iframe) iframe.src = blobUrl;
+  } else {
+    doc.save('Annexure_I_Sand_Sources.pdf');
+    toast('PDF downloaded successfully!', 'success');
+  }
+}
+function getAnx1Attachment() {
+  if (window.S && S.activeProject && S.activeProject.anx1Attachment) {
+    return S.activeProject.anx1Attachment;
+  }
+  return window.anx1Attachment || null;
+}
+function setAnx1Attachment(attachment) {
+  window.anx1Attachment = attachment;
+  if (window.S && S.activeProject) {
+    S.activeProject.anx1Attachment = attachment;
+    const pIdx = S.projects.findIndex(p => p.id === S.activeProject.id);
+    if (pIdx !== -1) S.projects[pIdx].anx1Attachment = attachment;
+  }
+}
+function renderAttachmentUploadUIAnx1() {
+  const el = document.getElementById('anx1-attachment-info');
+  if (!el) return;
+  const attachment = getAnx1Attachment();
+  if (!attachment || !attachment.pages || !attachment.pages.length) {
+    el.innerHTML = `
+      <div style="padding:14px 16px; border:1px dashed var(--border); border-radius:var(--r-sm); color:var(--text-soft); font-size:13px; background:var(--off);">
+        No supporting PDF/image uploaded yet.
+      </div>`;
+    return;
+  }
+  el.innerHTML = `
+    <div class="file-item" style="margin-top:10px; background:var(--off); border:1px solid var(--border); max-width:560px; display:flex; align-items:center; justify-content:space-between; padding:10px 12px; border-radius:var(--r-sm);">
+      <div style="display:flex; align-items:center; gap:8px;">
+        <div class="file-icon" style="background:var(--teal-lt); color:var(--teal); padding:6px; border-radius:var(--r-xs); font-size:14px;">
+          <i data-lucide="file-up" style="width:16px; height:16px;"></i>
+        </div>
+        <div style="line-height:1.25;">
+          <div style="font-size:12px; font-weight:700; color:var(--text);">${attachment.fileName}</div>
+          <div style="font-size:10.5px; color:var(--text-faint);">${attachment.fileSize || ''} - ${attachment.pages.length} page(s) will be appended</div>
+        </div>
+      </div>
+      <button type="button" class="btn btn-xs btn-danger" onclick="deleteAttachmentAnx1()">Remove</button>
+    </div>`;
+  if (window.initLucide) window.initLucide();
+}
+function handleAttachmentUploadAnx1(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const sizeStr = (file.size / 1024).toFixed(1) + ' KB';
+  if (file.type === 'application/pdf' || file.name.toLowerCase().endsWith('.pdf')) {
+    toast('Processing supporting PDF...', 'info');
+    if (typeof renderPdfToImages !== 'function') {
+      toast('PDF renderer is not available on this page.', 'error');
+      event.target.value = '';
+      return;
+    }
+    renderPdfToImages(file, (err, imgs) => {
+      if (err || !imgs || !imgs.length) {
+        console.error(err);
+        toast('PDF render failed. Please try another PDF or upload an image.', 'error');
+        event.target.value = '';
+        return;
+      }
+      setAnx1Attachment({
+        fileName: file.name,
+        fileSize: sizeStr,
+        fileType: 'pdf',
+        pages: imgs
+      });
+      renderAttachmentUploadUIAnx1();
+      if (window.debouncedSaveState) window.debouncedSaveState();
+      toast('Supporting PDF added to Annexure I.', 'success');
+      if (window.pdfPreview && window.pdfPreview.currentView === 'anx1') {
+        exportAnx1PDF(null, true);
+      }
+      event.target.value = '';
+    });
+    return;
+  }
+  if (file.type.startsWith('image/')) {
+    const reader = new FileReader();
+    reader.onload = function(evt) {
+      setAnx1Attachment({
+        fileName: file.name,
+        fileSize: sizeStr,
+        fileType: 'image',
+        pages: [evt.target.result]
+      });
+      renderAttachmentUploadUIAnx1();
+      if (window.debouncedSaveState) window.debouncedSaveState();
+      toast('Supporting image added to Annexure I.', 'success');
+      if (window.pdfPreview && window.pdfPreview.currentView === 'anx1') {
+        exportAnx1PDF(null, true);
+      }
+      event.target.value = '';
+    };
+    reader.readAsDataURL(file);
+    return;
+  }
+  toast('Unsupported file format. Please upload a PDF or image.', 'error');
+  event.target.value = '';
+}
+function deleteAttachmentAnx1() {
+  setAnx1Attachment(null);
+  renderAttachmentUploadUIAnx1();
+  if (window.debouncedSaveState) window.debouncedSaveState();
+  if (window.pdfPreview && window.pdfPreview.currentView === 'anx1') {
+    exportAnx1PDF(null, true);
+  }
+  toast('Supporting file removed.', 'success');
+}
+function loadAnx1Image(src) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = reject;
+    img.src = src;
+  });
+}
+async function appendAnx1AttachmentPages(doc) {
+  const attachment = getAnx1Attachment();
+  if (!attachment || !attachment.pages || !attachment.pages.length) return;
+  for (const src of attachment.pages) {
+    const img = await loadAnx1Image(src);
+    doc.addPage('a4', 'p');
+    const w = doc.internal.pageSize.getWidth();
+    const h = doc.internal.pageSize.getHeight();
+    const margin = 24;
+    const maxW = w - margin * 2;
+    const maxH = h - margin * 2;
+    const ratio = Math.min(maxW / img.width, maxH / img.height);
+    const drawW = img.width * ratio;
+    const drawH = img.height * ratio;
+    const x = (w - drawW) / 2;
+    const y = (h - drawH) / 2;
+    const format = String(src).startsWith('data:image/png') ? 'PNG' : 'JPEG';
+    doc.addImage(src, format, x, y, drawW, drawH);
+  }
+}
+function renderAnx1() {
+  renderAttachmentUploadUIAnx1();
+  ['RIVERS', 'DESILT', 'PATTA', 'MSAND'].forEach(renumberAnx1TableBlocks);
+  if (typeof applyMoreAnnexureAccess === 'function') applyMoreAnnexureAccess(document.getElementById('view-anx1'));
+  if (window.initLucide) window.initLucide();
+}
+document.addEventListener('input', (e) => {
+  if (e.target.closest('#view-anx1 table')) {
+    if (window.anx1DebounceTimer) clearTimeout(window.anx1DebounceTimer);
+    window.anx1DebounceTimer = setTimeout(() => {
+      exportAnx1PDF(null, true);
+    }, 1500);
+  }
+});
+window.anx1DeleteButtonHTML = anx1DeleteButtonHTML;
+window.downloadSectionTemplateAnx1 = downloadSectionTemplateAnx1;
+window.handleSectionUploadAnx1 = handleSectionUploadAnx1;
+window.addRowAnx1 = addRowAnx1;
+window.addAnx1TableBlock = addAnx1TableBlock;
+window.deleteAnx1TableBlock = deleteAnx1TableBlock;
+window.getAnx1EmptyRow = getAnx1EmptyRow;
+window.delRowAnx1 = delRowAnx1;
+window.exportAnx1PDF = exportAnx1PDF;
+window.handleAttachmentUploadAnx1 = handleAttachmentUploadAnx1;
+window.deleteAttachmentAnx1 = deleteAttachmentAnx1;
+window.renderAttachmentUploadUIAnx1 = renderAttachmentUploadUIAnx1;
+window.renderAnx1 = renderAnx1;
+document.addEventListener('change', (e) => {
+  if (e.target.closest('#view-anx1 table')) {
+    if (window.anx1DebounceTimer) clearTimeout(window.anx1DebounceTimer);
+    window.anx1DebounceTimer = setTimeout(() => {
+      exportAnx1PDF(null, true);
+    }, 300);
+  }
+});
